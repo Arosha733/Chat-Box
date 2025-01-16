@@ -20,8 +20,10 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
+                    // Print the directory structure to verify the location of the requirements.txt file
+                    bat 'dir /s requirements.txt'
+
                     // Build Docker image using Dockerfile
-                    // Use env syntax for environment variables
                     bat "docker build -t ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG} ."
                 }
             }
@@ -31,9 +33,9 @@ pipeline {
         stage('Docker Login') {
             steps {
                 script {
-                    // Login to Docker using Jenkins credentials (assuming 'docker-credentials' is configured in Jenkins)
+                    // Login to Docker using Jenkins credentials (assuming 'Docker-cred' is configured in Jenkins)
                     withCredentials([usernamePassword(credentialsId: "${DOCKER_CREDENTIALS}", usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                        bat "echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin"
+                        bat 'echo %DOCKER_PASSWORD% | docker login -u %DOCKER_USERNAME% --password-stdin'
                     }
                 }
             }
