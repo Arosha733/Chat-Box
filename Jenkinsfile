@@ -21,7 +21,8 @@ pipeline {
             steps {
                 script {
                     // Build Docker image using Dockerfile
-                    bat 'docker build -t %DOCKER_REGISTRY%/%DOCKER_IMAGE_NAME%:%DOCKER_TAG% .'
+                    // Use env syntax for environment variables
+                    bat "docker build -t ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG} ."
                 }
             }
         }
@@ -32,7 +33,7 @@ pipeline {
                 script {
                     // Login to Docker using Jenkins credentials (assuming 'docker-credentials' is configured in Jenkins)
                     withCredentials([usernamePassword(credentialsId: "${DOCKER_CREDENTIALS}", usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                        bat 'echo %DOCKER_PASSWORD% | docker login -u %DOCKER_USERNAME% --password-stdin'
+                        bat "echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin"
                     }
                 }
             }
@@ -43,7 +44,7 @@ pipeline {
             steps {
                 script {
                     // Push the image to Docker Hub or the registry defined
-                    bat 'docker push %DOCKER_REGISTRY%/%DOCKER_IMAGE_NAME%:%DOCKER_TAG%'
+                    bat "docker push ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG}"
                 }
             }
         }
