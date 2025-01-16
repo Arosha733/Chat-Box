@@ -1,28 +1,58 @@
 pipeline {
     agent any
 
+    environment {
+        DOCKER_IMAGE_NAME = 'your-image-name'          // Define your Docker image name
+        DOCKER_TAG = 'latest'                          // Define Docker tag
+        DOCKER_REGISTRY = 'docker.io'                  // Registry to publish the image
+        DOCKER_CREDENTIALS = 'Docker-cred'      // Jenkins credentials for Docker Hub
+    }
+
     stages {
+        // Stage to checkout the source code
         stage('Checkout') {
             steps {
                 git 'https://github.com/Arosha733/Chat-Box.git'
             }
         }
-        // Remove the Docker build step if not needed
-        // stage('Build') {
-        //     steps {
-        //         echo 'Building Docker containers...'
-        //         bat 'docker build -t your-image-name .'
-        //     }
-        // }
-        stage('Deploy to Staging') {
+
+        // Stage to build the Docker image
+        stage('Build Docker Image') {
             steps {
-                echo 'Deploying to staging...'
+                script {
+                    // Build Docker image using Dockerfile
+                    sh 'docker build -t ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG} .'
+                }
             }
         }
-        stage('Test') {
+
+        // Stage to login to Docker Hub (or another registry)
+        stage('Docker Login') {
             steps {
-                echo 'Running tests...'
+                script {
+                    // Login to Docker using Jenkins credentials (assuming 'docker-credentials' is configured in Jenkins)
+                    withCredentials([usernamePassword(credentialsId: "${DOCKER_CREDENTIALS}", usernameVariable: 'arooshashafqat02', passwordVariable: 'arooshaaa')]) {
+                        sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin'
+                    }
+                }
             }
+        }
+
+        // Stage to push the Docker image to a registry
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    // Push the image to Docker Hub or the registry defined
+                    sh 'docker push ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG}'
+                }
+            }
+        }
+    }
+
+    post {
+        // Cleanup and logout after the build process
+        always {
+            sh 'docker logout'
         }
     }
 }
