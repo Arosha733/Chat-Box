@@ -5,7 +5,7 @@ pipeline {
         DOCKER_IMAGE_NAME = 'your-image-name'          // Define your Docker image name
         DOCKER_TAG = 'latest'                          // Define Docker tag
         DOCKER_REGISTRY = 'docker.io'                  // Registry to publish the image
-        DOCKER_CREDENTIALS = 'Docker-cred'      // Jenkins credentials for Docker Hub
+        DOCKER_CREDENTIALS = 'Docker-cred'             // Jenkins credentials for Docker Hub
     }
 
     stages {
@@ -21,7 +21,7 @@ pipeline {
             steps {
                 script {
                     // Build Docker image using Dockerfile
-                    sh 'docker build -t ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG} .'
+                    bat 'docker build -t %DOCKER_REGISTRY%/%DOCKER_IMAGE_NAME%:%DOCKER_TAG% .'
                 }
             }
         }
@@ -31,8 +31,8 @@ pipeline {
             steps {
                 script {
                     // Login to Docker using Jenkins credentials (assuming 'docker-credentials' is configured in Jenkins)
-                    withCredentials([usernamePassword(credentialsId: "${DOCKER_CREDENTIALS}", usernameVariable: 'arooshashafqat02', passwordVariable: 'arooshaaa')]) {
-                        sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin'
+                    withCredentials([usernamePassword(credentialsId: "${DOCKER_CREDENTIALS}", usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                        bat 'echo %DOCKER_PASSWORD% | docker login -u %DOCKER_USERNAME% --password-stdin'
                     }
                 }
             }
@@ -43,7 +43,7 @@ pipeline {
             steps {
                 script {
                     // Push the image to Docker Hub or the registry defined
-                    sh 'docker push ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG}'
+                    bat 'docker push %DOCKER_REGISTRY%/%DOCKER_IMAGE_NAME%:%DOCKER_TAG%'
                 }
             }
         }
@@ -52,7 +52,7 @@ pipeline {
     post {
         // Cleanup and logout after the build process
         always {
-            sh 'docker logout'
+            bat 'docker logout'
         }
     }
 }
